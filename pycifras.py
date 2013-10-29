@@ -14,16 +14,14 @@ def main(argv):
     if len(args) > 1:
         compute(args[0], args[1:])
 
-def compute(target_number, number_ops):
-    results = dict()
+def compute(target_number, numbers):
     operators = ['+','-','*','/']
-    for operation in itertools.product(operators,repeat=len(number_ops)):
-        for number_perm in itertools.permutations(number_ops):
-            c = [ item for pair in zip(number_perm, operation) for item in pair ][:-1]
-            stroperation = ''.join(map(str,c))
-            if eval(stroperation) == int(target_number):
-                if stroperation not in results:
-                    results[stroperation]=stroperation
+    for i in range(1,len(numbers)):
+        for oper in itertools.product(operators,repeat=i):
+            for num_perm in itertools.permutations(numbers, i+1):
+                c = [ it for p in zip(num_perm, oper) for it in p ]+[num_perm[-1]]
+                stroperation = ''.join(map(str,c))
+                if eval(stroperation) == int(target_number):
                     print stroperation
 
 if __name__ == '__main__':
