@@ -7,10 +7,10 @@ results = dict()
 
 def addToDic(dic, key, value):
     if key not in dic:
-        dic[key] = []
-        dic[key].append(value)
+        dic[key] = value
+        return True
     else:
-        dic[key].append(value)
+        return False
 
 def addOrNotToDic(dic, key, value):
     if len(dic):
@@ -27,19 +27,21 @@ class State():
     global results
 
     def __init__(self, expected_res, numbers, operation, operations):
+        self.numbers = numbers
         self.expected_res = expected_res
+        self.result = None
+        self.operations = operations
         self.operation = operation
         self.result = self.oper()
         opers = operations[::]
         tempoper = '='.join((operation,str(self.result))),
         opers.append(tempoper)
         self.operations = opers
-        self.numbers = numbers
         self.numbers.append(self.result)
         addOrNotToDic(results, int(self.distanceToResult()), self)
-        addToDic(states, str(self.numbers.sort()), self)
-        if self.result != 0:
-            self.iterate()
+        if addToDic(states, str(self.numbers.sort()), self):
+            if self.result == None or self.result != 0:
+                self.iterate()
 
     def distanceToResult(self):
         return math.fabs(self.expected_res-self.result)
@@ -54,26 +56,23 @@ class State():
         return str(self.operations)
 
     def inStates(self):
-        return str(self.numbers.sort()) in results
+        return str(self.numbers.sort()) in states
 
     def iterate(self):
         #if self.distanceToResult:
-        if not self.inStates():
-            for oper in "+*/-":
-                for x,y in itertools.combinations(self.numbers, 2):
-                    tempnumbers = self.numbers[::]
-                    tempnumbers.remove(x)
-                    tempnumbers.remove(y)
-                    child = State(self.expected_res,
-                            tempnumbers,
-                            oper.join((str(x),str(y))),
-                            self.operations)
-        else:
-            print(self.operations)
+        for oper in "+*/-":
+            for x,y in itertools.combinations(self.numbers, 2):
+                tempnumbers = self.numbers[::]
+                tempnumbers.remove(x)
+                tempnumbers.remove(y)
+                child = State(self.expected_res,
+                        tempnumbers,
+                        oper.join((str(x),str(y))),
+                        self.operations)
 
 def compute(result, arguments):
     intargs = [int(x) for x in arguments]
-    state = State(expected_res=int(result), numbers=intargs, operation='1', 
+    state = State(expected_res=int(result), numbers=intargs, operation='1',
             operations=list())
     return [str(x)+': '+str(y[0]) for x,y in results.items() if len(y)]
 #    print(results[0].operations)
