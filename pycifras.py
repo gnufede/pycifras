@@ -3,7 +3,7 @@ import sys, getopt, itertools
 import math
 
 states = dict()
-results = dict()
+results = ()
 expected_res = 0
 
 def addToStates(key, value):
@@ -17,35 +17,29 @@ def addToStates(key, value):
 def addToResults(key, value):
     global results
     if len(results):
-        if key < list(results.keys())[0]:
-            results.clear()
-            results[key] = []
-            results[key].append(value)
+        if key < results[0]:
+            results = (key, value)
     else:
-        results[key] = []
-        results[key].append(value)
+        results = (key,value)
 
 class State():
     global states
     global results
     global expected_res
 
-    def __init__(self, numbers, operations, operation=None):
-        self.numbers = numbers
-        self.operations = operations
-        self.operation = operation
+    def __init__(self, **kwargs):
+        vars(self).update(kwargs)
         self.result = 1
-        if operation:
+        if self.operation:
             self.result = self.oper()
-            opers = operations[::]
-            tempoper = '='.join((operation,str(self.result))),
-            opers.append(tempoper[0])
-            self.operations = opers
+            self.operations = self.operations[::]
+            self.operations.append(\
+                    '='.join((self.operation,str(self.result))))
             self.numbers.append(self.result)
             self.numbers.sort()
             addToResults(int(self.distanceToResult()), self)
         if addToStates(str(self.numbers), self):
-            if self.result != 0:
+            if self.result != 0 and (0 not in results):
                 self.iterate()
 
     def distanceToResult(self):
@@ -78,8 +72,8 @@ def compute(result, arguments):
     global expected_res
     intargs = [int(x) for x in arguments]
     expected_res = int(result)
-    state = State(numbers=intargs, operations=list())
-    return [str(x)+': '+str(y[0]) for x,y in results.items() if len(y)]
+    state = State(numbers=intargs, operations=list(), operation=None)
+    return str(results[0])+': '+str(results[1])
 #    print(results[0].operations)
 
 def main(argv):
@@ -93,7 +87,7 @@ def main(argv):
           print('pycifras.py <target_number> <inputnumber1> <inputnumber2>...')
           sys.exit()
     if len(args) > 1:
-        print( '\n'.join(compute(args[0], args[1:])) )
+        print(compute(args[0], args[1:]))
 
 if __name__ == '__main__':
     main(sys.argv[1:])
